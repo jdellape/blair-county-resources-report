@@ -1,10 +1,6 @@
 import streamlit as st
 import json
 import pandas as pd
-from organization import Organization
-from service import Service
-from weekly_schedule import WeeklySchedule
-from daily_schedule import DailySchedule, DailyMealSchedule
 from google.cloud import firestore
 from google.oauth2 import service_account
 
@@ -27,66 +23,23 @@ with open('available_services.txt') as f:
         SERVICES_OPTIONS.append(line.strip())
 
 #Define functions
-@st.cache_resource
+@st.cache_resource()
 def get_db_object():
     key_dict = json.loads(st.secrets["textkey"])
     creds = service_account.Credentials.from_service_account_info(key_dict)
     db = firestore.Client(credentials=creds, project="streamlit-sources")
     return db
 
-def get_editable_df_for_basic_schedule(service_key):
-    is_available = [False for x in DAYS_OF_WEEK]
-    open_times = ["" for x in DAYS_OF_WEEK]
-    close_times = ["" for x in DAYS_OF_WEEK]
-    df = pd.DataFrame(list(zip(DAYS_OF_WEEK, is_available, open_times, close_times)),
-    columns =['day', 'available', 'beginning at', 'ending at'])
-    return st.experimental_data_editor(df, key=service_key + '_weekly_schedule')   
-
-def get_editable_df_for_meal_schedule(service_key):
-    is_available = []
-    days = []
-    meals = []
-    open_times = []
-    close_times = []
-    for day in DAYS_OF_WEEK:
-        for meal in MEALS:
-            is_available.append(False)
-            days.append(day)
-            meals.append(meal)
-            open_times.append("")
-            close_times.append("")
-    df = pd.DataFrame(list(zip(days, meals, is_available, open_times, close_times)),
-    columns =['day', 'meal', 'available', 'beginning at', 'ending at'])
-    return st.experimental_data_editor(df, key=service_key + '_weekly_schedule')   
+@st.cache_data()
+def get_agency_list(_db_connection):
+    agency_ref = _db_connection.collection("agencies")
+    return [doc.to_dict() for doc in agency_ref.stream()]
 
 def get_service_list_intersection(db_doc_services_name_list):
     return set(SERVICES_OPTIONS).intersection(db_doc_services_name_list)
 
 def get_service_names_from_db_doc(doc):
-    return [service for service in list(doc['services'].keys())]      
-
-def get_service_check_boxes_for_existing_agency(doc):
-    service_list_to_return  = []
-    #get list intersection
-    found_services = get_service_names_from_db_doc(doc)
-    for service in SERVICES_OPTIONS:
-        #Check if it has a schedule
-        #has_schedule_flag = service['has_schedule']
-        if service in found_services:
-            service_list_to_return.append(st.checkbox(label=service, value=True, key=service))
-        else:
-            service_list_to_return.append(st.checkbox(label=service, value=False, key=service))
-    return service_list_to_return
-
-def get_services_with_schedules(services_dict):
-    #This returns a list of strings
-    return [s for s in list(services_dict.keys()) if s in SERVICES_ON_SCHEDULE]
-
-def get_schedule_entry_object_for_service(service_name):
-    if service_name == "Food/Meals":
-        return get_editable_df_for_meal_schedule(SERVICES_ON_SCHEDULE_KEY_STRING_DICT[service_name])
-    else:
-        return get_editable_df_for_basic_schedule(SERVICES_ON_SCHEDULE_KEY_STRING_DICT[service_name])
+    return [service for service in list(doc['services'].keys())]
     
 def get_ordered_df_column_list(service_name):
     if service_name == 'Food/Meals':
@@ -94,11 +47,11 @@ def get_ordered_df_column_list(service_name):
     else:
         return ['day', 'available','beginning at','ending at']
 
-#Make connection to firestore db
+# Make connection to firestore db
 DB = get_db_object()
 
-AGENCY_REF = DB.collection("agencies")
-AGENCY_LIST = [doc.to_dict() for doc in AGENCY_REF.stream()]
+# Get data from db and cache it
+AGENCY_LIST = get_agency_list(DB)
 AGENCY_NAMES = [agency['name'] for agency in AGENCY_LIST]
 
 #with tab3:
