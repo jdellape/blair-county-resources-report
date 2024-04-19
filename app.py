@@ -21,6 +21,7 @@ SERVICES_ON_SCHEDULE_KEY_STRING_DICT = {'Food/Pantries':'food_pantries_','Food/M
 with open('available_services.txt') as f:
     for line in f.readlines():
         SERVICES_OPTIONS.append(line.strip())
+SERVICES_OPTIONS.sort()
 
 #Define functions
 @st.cache_resource()
@@ -33,7 +34,8 @@ def get_db_object():
 @st.cache_data()
 def get_agency_list(_db_connection):
     agency_ref = _db_connection.collection("agencies")
-    return [doc.to_dict() for doc in agency_ref.stream()]
+    agency_list = [doc.to_dict() for doc in agency_ref.stream()]
+    return sorted(agency_list, key=lambda d:d['name'])
 
 def get_service_list_intersection(db_doc_services_name_list):
     return set(SERVICES_OPTIONS).intersection(db_doc_services_name_list)
@@ -54,7 +56,6 @@ DB = get_db_object()
 AGENCY_LIST = get_agency_list(DB)
 AGENCY_NAMES = [agency['name'] for agency in AGENCY_LIST]
 
-#with tab3:
 #Radio button to either view all agencies or restrict by name or service
 st.subheader('Report View Mode')
 view_mode_selection = st.radio('View Mode', options=['All Organizations','Single Organization','Organizations Based on Services Provided'],
