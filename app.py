@@ -71,6 +71,7 @@ if view_mode_selection == 'All Organizations':
             st.write(f"Zip Code : {agency['zip_code']}")
             st.write(f"Contact Name : {agency['contact_name']}")
             st.write(f"Email : {agency['email']}")
+            st.write(f"Description of Services: {agency['services_description']}")
             st.write('Schedule :')
             hours_of_operation_from_db = pd.DataFrame.from_dict(agency['hours_of_operation'])
             hours_of_operation_from_db = hours_of_operation_from_db[get_ordered_df_column_list('hours_of_operation_view')]
@@ -97,6 +98,7 @@ if view_mode_selection == 'Single Organization':
             st.write(f"Zip Code : {agency['zip_code']}")
             st.write(f"Contact Name : {agency['contact_name']}")
             st.write(f"Email : {agency['email']}")
+            st.write(f"Description of Services: {agency['services_description']}")
             st.write('Schedule :')
             hours_of_operation_from_db = pd.DataFrame.from_dict(agency['hours_of_operation'])
             hours_of_operation_from_db = hours_of_operation_from_db[get_ordered_df_column_list('hours_of_operation_view')]
@@ -130,6 +132,7 @@ if view_mode_selection == 'Organizations Based on Services Provided':
                 st.write(f"Zip Code : {agency['zip_code']}")
                 st.write(f"Contact Name : {agency['contact_name']}")
                 st.write(f"Email : {agency['email']}")
+                st.write(f"Description of Services: {agency['services_description']}")
                 st.write('Schedule :')
                 hours_of_operation_from_db = pd.DataFrame.from_dict(agency['hours_of_operation'])
                 hours_of_operation_from_db = hours_of_operation_from_db[get_ordered_df_column_list('hours_of_operation_view')]
