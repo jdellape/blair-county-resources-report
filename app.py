@@ -1,11 +1,7 @@
 import streamlit as st
 import json
 import pandas as pd
-from google.cloud import firestore
-from google.oauth2 import service_account
-
-#Set global vars
-#tab3 = st.tabs(["View Report"])
+from firebase_client import get_firestore
 
 SERVICES_OPTIONS = []
 
@@ -22,14 +18,6 @@ with open('available_services.txt') as f:
     for line in f.readlines():
         SERVICES_OPTIONS.append(line.strip())
 SERVICES_OPTIONS.sort()
-
-#Define functions
-@st.cache_resource()
-def get_db_object():
-    key_dict = json.loads(st.secrets["textkey"])
-    creds = service_account.Credentials.from_service_account_info(key_dict)
-    db = firestore.Client(credentials=creds, project="streamlit-sources")
-    return db
 
 @st.cache_data()
 def get_agency_list(_db_connection):
@@ -50,7 +38,7 @@ def get_ordered_df_column_list(service_name):
         return ['day', 'available','beginning at','ending at']
 
 # Make connection to firestore db
-DB = get_db_object()
+DB = get_firestore()
 
 # Get data from db and cache it
 AGENCY_LIST = get_agency_list(DB)
